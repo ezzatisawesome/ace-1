@@ -1,6 +1,6 @@
 import aerosandbox as asb
 import aerosandbox.numpy as np
-
+import aerosandbox.tools.pretty_plots as pplt
 
 # ---------- CONSTANTS ----------
 # --- Flight Conditions ---

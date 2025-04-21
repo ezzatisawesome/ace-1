@@ -6,13 +6,13 @@
 #import packages
 import aerosandbox as asb
 import aerosandbox.numpy as np
-import aerosandbox.tools.pretty_plots as pplt
-
+import math
 
 
 # ---------- CONSTANTS ----------
 # --- World ---
 g = 9.81  # [m/s^2]
+e = 0.7  # Oswald efficiency factor
 
 # --- Aircraft  ---
 mass = 71000  # [kg]
@@ -31,20 +31,27 @@ cruise_speed = atm.speed_of_sound() * cruise_mach
 viscosity = atm.dynamic_viscosity()
 
 # ---------- OPTIMIZATION MODEL ----------
-opti=asb.Opti(cache_filename="output/soln1.json")
+opti=asb.Opti(cache_filename="soln1.json")
 
 # ---------- VARIABLES ----------
 # --- Aerodynamic ---
 wing_airfoil = asb.Airfoil("sc20412") #TODO: Replace with optimized airfoil from above
 wingspan = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=10)
-chordlen = opti.variable(init_guess=7, lower_bound=6, upper_bound=8, scale=2)
+chord_len = opti.variable(init_guess=7, lower_bound=6, upper_bound=8, scale=2)
 aoa = opti.variable(init_guess=2, lower_bound=-5, upper_bound=10, scale=1)
-wing_area = chordlen * wingspan
-ar = wingspan**2 / wing_area
 sweep = opti.variable(init_guess=15, lower_bound=5, upper_bound=30, scale=2)
+CL = opti.variable(init_guess=1)  # Lift coefficient of wing 
+aspect_ratio = opti.variable(init_guess=10, log_transform=True)  # as an experiment, let's leave this unbounded.
+wing_area = opti.variable(init_guess=1, log_transform=True)
 
+# --- Governing Equations ---
+wing_area = chord_len * wingspan
+ar = wingspan ** 2 / wing_area
 q_inf = (atm.density() * (cruise_speed ** 2)) / 2
-reynolds_num = (atm.density() * (cruise_speed) * wingspan) / viscosity
+CD_induced = CL ** 2 / (math.pi * ar * e)
+lift = q_inf * wing_area * CL
+drag = (CD_induced* q_inf * wing_area)
+efficiency = lift/drag
 
 # ---------- GEOMETRIES ----------
 main_wing = asb.Wing(
@@ -61,7 +68,7 @@ main_wing = asb.Wing(
                 0,
                 0,
             ],  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
-            chord=chordlen,
+            chord=chord_len,
             twist=aoa,  # degrees
             airfoil=wing_airfoil,  # Airfoils are blended between a given XSec and the next one.
 
@@ -72,7 +79,7 @@ main_wing = asb.Wing(
                 wingspan,
                 0,
             ],
-            chord=chordlen,  # Tip chord is 20% of root chord
+            chord=chord_len,  # Tip chord is 20% of root chord
             twist=aoa,
             airfoil=wing_airfoil,
         ),
@@ -83,7 +90,7 @@ main_wing = asb.Wing(
 # Here, all distances are in meters and all angles are in degrees.
 airplane = asb.Airplane(
     name="ACE-1",
-    xyz_ref=[0.25 * chordlen, 0, 0],  # CG location
+    xyz_ref=[0.25 * chord_len, 0, 0],  # CG location
     wings=[main_wing],
 )
 
@@ -96,39 +103,26 @@ vlm = asb.VortexLatticeMethod(
 )
 aero = vlm.run_with_stability_derivatives()  # Returns a dictionary
 
-
 # ---------- CONSTRAINTS ----------
 # --- Aerodynamic ---
-opti.subject_to(aero["L"] == weight)
-opti.subject_to(main_wing.aspect_ratio() > 15)  # Aspect ratio must match
-opti.subject_to(main_wing.mean_sweep_angle() > 5)  # Sweep must be greater than 5 degrees
-opti.subject_to(wing_area >= 100)
-opti.subject_to(wing_area <= 400)
-opti.subject_to(ar <= 30)
+opti.subject_to([
+    aero["L"] == weight,
+    drag == 2 * engine_thrust
+])
 
 # ---------- SOLVE ----------
+opti.maximize(efficiency)
 
-opti.minimize(wingspan)
-try:
-    sol = opti.solve()
-    opti.save_solution()
+sol = opti.solve()
+print("Wingspan:", sol(wingspan))
+print("Chord Length:", sol(chord_len))
+print("Aspect Ratio:", sol(ar))
+print("Sweep:", sol(sweep))
 
-    print("Wingspan:", sol(wingspan))
-    print("Chordlen:", sol(chordlen))
-    print("Aspect Ratio:", sol(ar))
-    print("Sweep:", sol(sweep))
-    print("AoA:", sol(aoa))
+# for k, v in aero.items():
+#     print(f"{k.rjust(4)} : {sol(aero[k])}")
 
-    for k, v in aero.items():
-        print(f"{k.rjust(4)} : {sol(aero[k])}")
-
-    vlm=sol(vlm)
-    vlm.draw()
-
-    airplane=sol(airplane)
-    airplane.draw()
-
-except RuntimeError as e:
-    opti.debug.show_infeasibilities()
-    sol=opti.debug
-    print(sol)
+vlm=sol(vlm)
+vlm.draw()
+airplane=sol(airplane)
+airplane.draw()
