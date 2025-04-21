@@ -1,5 +1,7 @@
 import aerosandbox as asb
 import aerosandbox.numpy as np
+import matplotlib.pyplot as plt
+import aerosandbox.tools.pretty_plots as p
 
 
 opti=asb.Opti(cache_filename="soln1.json")
@@ -35,7 +37,7 @@ cruise_speed = atm.speed_of_sound() * cruise_mach
 wing_airfoil = asb.Airfoil("sc20412")
 span = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=5)
 chord_root = opti.variable(init_guess=3, lower_bound=1, upper_bound=15)
-chord_tip = opti.variable(init_guess=1, lower_bound=0.25, upper_bound=3)
+chord_tip = opti.variable(init_guess=1, lower_bound=0.5, upper_bound=3)
 # aoa = opti.variable(init_guess=2, lower_bound=0, upper_bound=10, scale=1)
 
 
@@ -184,3 +186,45 @@ vlm=sol(vlm)
 vlm.draw()
 airplane=sol(airplane)
 airplane.draw()
+
+# Plotting
+alpha = np.linspace(-20, 20, 300)
+
+aero = asb.AeroBuildup(
+    airplane=airplane,
+    op_point=asb.OperatingPoint(
+        velocity=10,
+        alpha=alpha,
+        beta=0
+    ),
+).run()
+
+fig, ax = plt.subplots(2, 2)
+
+plt.sca(ax[0, 0])
+plt.plot(alpha, aero["CL"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_L$")
+p.set_ticks(5, 1, 0.5, 0.1)
+
+plt.sca(ax[0, 1])
+plt.plot(alpha, aero["CD"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_D$")
+p.set_ticks(5, 1, 0.05, 0.01)
+plt.ylim(bottom=0)
+
+plt.sca(ax[1, 0])
+plt.plot(aero["CD"], aero["CL"])
+plt.xlabel(r"$C_L$")
+plt.ylabel(r"$C_D$")
+p.set_ticks(5, 1, 0.5, 0.1)
+
+plt.sca(ax[1, 1])
+plt.plot(alpha, aero["CL"] / aero["CD"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_L/C_D$")
+p.set_ticks(5, 1, 10, 2)
+
+p.show_plot(
+    "ACE-1 Aerodynamics")
