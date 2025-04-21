@@ -216,8 +216,8 @@ plt.ylim(bottom=0)
 
 plt.sca(ax[1, 0])
 plt.plot(aero["CD"], aero["CL"])
-plt.xlabel(r"$C_L$")
-plt.ylabel(r"$C_D$")
+plt.xlabel(r"$C_D$")
+plt.ylabel(r"$C_L$")
 p.set_ticks(5, 1, 0.5, 0.1)
 
 plt.sca(ax[1, 1])
