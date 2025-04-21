@@ -33,12 +33,12 @@ opti=asb.Opti(cache_filename="soln1.json")
 
 # ---------- VARIABLES ----------
 # --- Aerodynamic ---
-wing_airfoil = asb.Airfoil("sc20412") #TODO: Replace with optimized airfoil from above
+wing_airfoil = asb.Airfoil("sc20412")
 wingspan = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=10)
 aoa = opti.variable(init_guess=2, lower_bound=-5, upper_bound=10, scale=1)
 sweep = opti.variable(init_guess=15, lower_bound=5, upper_bound=30, scale=2)
-CL = opti.variable(init_guess=1, lower_bound=1, upper_bound=1.6, scale=1)  # Lift coefficient of wing
-wing_area = opti.variable(init_guess=60)
+CL = opti.variable(init_guess=1, lower_bound=1, upper_bound=1.5, scale=1)  # Lift coefficient of wing
+wing_area = opti.variable(init_guess=130, lower_bound=125, upper_bound=300, scale=1)
 
 # --- Governing Equations ---
 ar = wingspan ** 2 / wing_area
@@ -114,11 +114,11 @@ print("Wingspan:", sol(wingspan))
 print("Chord Length:", sol(chord_len))
 print("Aspect Ratio:", sol(ar))
 print("Sweep:", sol(sweep))
+print("Cl:", sol(CL))
+print("AoA:", sol(aoa))
 
 # for k, v in aero.items():
 #     print(f"{k.rjust(4)} : {sol(aero[k])}")
-
-print(sol(CL))
 
 vlm=sol(vlm)
 vlm.draw()
