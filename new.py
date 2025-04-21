@@ -86,34 +86,34 @@ truss_wing = asb.Wing(
         ),
     ]
 )
-# Fuselage
-fuselage = asb.Fuselage(
-    name="Fuselage",
-    symmetric=True,
-    xsecs=[
-        asb.FuselageXSec(
-            xyz_c=[0, 0, 0],      # Nose
-            radius=0.2            # Pointy nose
-        ),
-        asb.FuselageXSec(
-            xyz_c=[3, 0, 0],
-            radius=1.85           # Max radius ramp up
-        ),
-        asb.FuselageXSec(
-            xyz_c=[27, 0, 0],
-            radius=1.85           # Constant diameter midsection
-        ),
-        asb.FuselageXSec(
-            xyz_c=[30, 0, 0],
-            radius=0.2            # Tapered tail
-        ),
-    ]
-)
+# # Fuselage
+# fuselage = asb.Fuselage(
+#     name="Fuselage",
+#     symmetric=True,
+#     xsecs=[
+#         asb.FuselageXSec(
+#             xyz_c=[0, 0, 0],      # Nose
+#             radius=0.2            # Pointy nose
+#         ),
+#         asb.FuselageXSec(
+#             xyz_c=[3, 0, 0],
+#             radius=1.85           # Max radius ramp up
+#         ),
+#         asb.FuselageXSec(
+#             xyz_c=[27, 0, 0],
+#             radius=1.85           # Constant diameter midsection
+#         ),
+#         asb.FuselageXSec(
+#             xyz_c=[30, 0, 0],
+#             radius=0.2            # Tapered tail
+#         ),
+#     ]
+# )
 airplane = asb.Airplane(
     name="ACE-1",
     xyz_ref=[0.25 * chord_root, 0, 0],  # CG location
     wings=[main_wing, truss_wing],
-    fuselages=[fuselage],
+    # fuselages=[fuselage],
 )
 
 
