@@ -6,13 +6,11 @@
 #import packages
 import aerosandbox as asb
 import aerosandbox.numpy as np
-import math
-
 
 # ---------- CONSTANTS ----------
 # --- World ---
 g = 9.81  # [m/s^2]
-e = 0.7  # Oswald efficiency factor
+e = 0.7  # Oswald efficiency factor standard for A320
 
 # --- Aircraft  ---
 mass = 71000  # [kg]
@@ -37,18 +35,16 @@ opti=asb.Opti(cache_filename="soln1.json")
 # --- Aerodynamic ---
 wing_airfoil = asb.Airfoil("sc20412") #TODO: Replace with optimized airfoil from above
 wingspan = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=10)
-chord_len = opti.variable(init_guess=7, lower_bound=6, upper_bound=8, scale=2)
 aoa = opti.variable(init_guess=2, lower_bound=-5, upper_bound=10, scale=1)
 sweep = opti.variable(init_guess=15, lower_bound=5, upper_bound=30, scale=2)
-CL = opti.variable(init_guess=1)  # Lift coefficient of wing 
-aspect_ratio = opti.variable(init_guess=10, log_transform=True)  # as an experiment, let's leave this unbounded.
-wing_area = opti.variable(init_guess=1, log_transform=True)
+CL = opti.variable(init_guess=1)  # Lift coefficient of wing
+wing_area = opti.variable(init_guess=60)
 
 # --- Governing Equations ---
-wing_area = chord_len * wingspan
 ar = wingspan ** 2 / wing_area
+chord_len = wingspan / ar
 q_inf = (atm.density() * (cruise_speed ** 2)) / 2
-CD_induced = CL ** 2 / (math.pi * ar * e)
+CD_induced = CL ** 2 / (np.pi * ar * e)
 lift = q_inf * wing_area * CL
 drag = (CD_induced* q_inf * wing_area)
 efficiency = lift/drag
