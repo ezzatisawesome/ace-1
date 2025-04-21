@@ -37,7 +37,7 @@ wing_airfoil = asb.Airfoil("sc20412") #TODO: Replace with optimized airfoil from
 wingspan = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=10)
 aoa = opti.variable(init_guess=2, lower_bound=-5, upper_bound=10, scale=1)
 sweep = opti.variable(init_guess=15, lower_bound=5, upper_bound=30, scale=2)
-CL = opti.variable(init_guess=1)  # Lift coefficient of wing
+CL = opti.variable(init_guess=1, lower_bound=1, upper_bound=1.6, scale=1)  # Lift coefficient of wing
 wing_area = opti.variable(init_guess=60)
 
 # --- Governing Equations ---
@@ -107,7 +107,7 @@ opti.subject_to([
 ])
 
 # ---------- SOLVE ----------
-opti.maximize(efficiency)
+opti.maximize(lift)
 
 sol = opti.solve()
 print("Wingspan:", sol(wingspan))
@@ -117,6 +117,8 @@ print("Sweep:", sol(sweep))
 
 # for k, v in aero.items():
 #     print(f"{k.rjust(4)} : {sol(aero[k])}")
+
+print(sol(CL))
 
 vlm=sol(vlm)
 vlm.draw()
