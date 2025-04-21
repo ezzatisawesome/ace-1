@@ -74,14 +74,14 @@ truss_wing = asb.Wing(
     symmetric=True,
     xsecs=[
         asb.WingXSec(
-            xyz_le=[3, 0, -1.5],  # Truss connects to fuselage near root
+            xyz_le=[5, 0, -1.5],  # Truss connects to fuselage near root
             chord=1,
             airfoil=wing_airfoil,
         ),
         asb.WingXSec(
             xyz_le=[
-                np.sind(20) * span * 0.6,  # A bit inward from wing tip
-                span * 0.6,
+                (span / 4) * 0.6,  # A bit inward from wing tip
+                span / 4,
                 -0.1  # Slight vertical offset to angle the truss
             ],
             chord=0.5,
@@ -115,10 +115,10 @@ truss_wing = asb.Wing(
 
 # Wing weight model
 weight_wing_structural = W_W_coeff1 * (
-        ultimate_load_factor * aspect_ratio ** 1.5 *
-        (weight_fuselage * weight * wing_area) ** 0.5
+        ultimate_load_factor * main_wing.aspect_ratio() ** 1.5 *
+        (weight_fuselage * weight * main_wing.area()) ** 0.5
 ) / airfoil_thickness_fraction
-weight_wing_surface = W_W_coeff2 * wing_area
+weight_wing_surface = W_W_coeff2 * main_wing.area()
 weight_wing = weight_wing_surface + weight_wing_structural
 
 
