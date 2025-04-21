@@ -29,8 +29,6 @@ viscosity = atm.dynamic_viscosity()
 q_inf = (atm.density() * (cruise_speed ** 2)) / 2
 reynolds_num = (atm.density() * (cruise_speed) * wingspan) / viscosity
 
-
-
 # ---------- OPTIMIZATION MODEL ----------
 opti=asb.Opti(cache_filename="output/soln1.json")
 
