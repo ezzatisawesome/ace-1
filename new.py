@@ -11,8 +11,13 @@ g = 9.81  # [m/s^2]
 e = 0.7  # Oswald efficiency factor standard for A320
 
 # Structural
-mass = 71000  # [kg]
+mass = 50000  # [kg]
 weight = mass * g
+weight_fuselage = 20000 * g  # [N] assumed fuselage weight
+W_W_coeff1 = 4.71e-5  # Wing Weight Coefficient 1 [1/m]
+W_W_coeff2 = 45.24  # Wing Weight Coefficient 2 [Pa]
+ultimate_load_factor = 3.8  # ultimate load factor [-]
+airfoil_thickness_fraction = 0.12  # Approx. for SC(2)-0412
 
 # Propulsion
 engine_thrust = 105000  # [N]
@@ -28,12 +33,10 @@ cruise_speed = atm.speed_of_sound() * cruise_mach
 
 ### Variables
 wing_airfoil = asb.Airfoil("sc20412")
-span = opti.variable(init_guess=45, lower_bound=25, upper_bound=100, scale=5)
+span = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=5)
 chord_root = opti.variable(init_guess=3, lower_bound=1, upper_bound=15)
 chord_tip = opti.variable(init_guess=1, lower_bound=0.25, upper_bound=3)
 # aoa = opti.variable(init_guess=2, lower_bound=0, upper_bound=10, scale=1)
-# sweep = opti.variable(init_guess=15, lower_bound=5, upper_bound=30, scale=2)
-
 
 
 ### Geoemtries
@@ -55,8 +58,8 @@ main_wing = asb.Wing(
         ),
         asb.WingXSec(  # Tip
             xyz_le=[
-                np.sind(20)*span,
-                span,
+                np.sind(20) * (span/2),
+                span / 2,
                 0,
             ],
             chord=chord_tip,  # Tip chord is 20% of root chord
@@ -141,9 +144,21 @@ D_total_hybrid = D_induced_vlm + D_parasitic_abu
 L_vlm = aero_vlm["L"]  # More accurate lift
 
 
+### Weight model
+weight_wing_structural = W_W_coeff1 * (
+        ultimate_load_factor * main_wing.aspect_ratio() ** 1.5 *
+        (weight_fuselage * weight * main_wing.area()) ** 0.5
+) / airfoil_thickness_fraction
+weight_wing_surface = W_W_coeff2 * main_wing.area()
+weight_wing = weight_wing_surface + weight_wing_structural
+
+
 ### Constraints and objective
-opti.subject_to(L_vlm == weight)
+opti.subject_to([
+    L_vlm == weight + weight_wing
+])
 opti.minimize(D_total_hybrid)
+
 sol = opti.solve()
 
 # Output results
