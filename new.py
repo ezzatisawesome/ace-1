@@ -289,6 +289,7 @@ for i in range(len(alpha)):
     if(alpha[i] > 0):
         alpha = alpha[i:]
         takeoff_aero["CL"] = takeoff_aero["CL"][i:]
+        takeoff_aero["CD"] = takeoff_aero["CD"][i:]
         break
 
 # Calculate V_stall as a function of angle of attack
@@ -305,7 +306,28 @@ plt.ylabel(r"$V_{stall}$ [m/s]")
 p.set_ticks(5, 1, 10, 2)
 
 p.show_plot(
-    "ACE-1 V_stall vs alpha")
+    r"ACE-1 $V_{stall}$ vs $\alpha$ (Base Wing)")
+
+# Calculate the required gain in CL for takeoff
+# Based on the min takeoff speed of the A320 and 737 
+# Which is about 150 mph
+takeoff_speed = 67.056 # [m/s] 
+
+# Calculate the required CL for takeoff
+cl_takeoff = 2 * weight / (takeoff_atm.density() * sol(main_wing).area() * takeoff_speed**2)
+
+# Calculate the required gain in CL at best L/D angle of attack
+cl_gain = cl_takeoff - takeoff_aero["CL"][np.argmax(takeoff_aero["CL"] / takeoff_aero["CD"])]
+
+# Print results
+print("\nRequired CL for takeoff:", round(cl_takeoff, 2))
+print("Current best CL:", round(takeoff_aero["CL"][np.argmax(takeoff_aero["CL"] / takeoff_aero["CD"])], 2))
+print("Required gain in CL for the high lift system:", round(cl_gain, 2))
+
+
+
+
+
 
 
 
