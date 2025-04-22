@@ -3,6 +3,7 @@ import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import aerosandbox.tools.pretty_plots as p
 import json
+import math
 
 
 opti=asb.Opti(cache_filename="soln1.json")
@@ -282,4 +283,30 @@ p.set_ticks(5, 1, 10, 2)
 
 p.show_plot(
     "ACE-1 Takeoff Aerodynamics")
+
+# Filter alpha values greater than 0
+for i in range(len(alpha)):
+    if(alpha[i] > 0):
+        alpha = alpha[i:]
+        takeoff_aero["CL"] = takeoff_aero["CL"][i:]
+        break
+
+# Calculate V_stall as a function of angle of attack
+v_stall = []
+for i in range(len(alpha)):
+    v_stall.append(np.sqrt(2 * weight / (takeoff_atm.density() * sol(main_wing).area() * takeoff_aero["CL"][i])))
+
+
+# Plot V_stall vs alpha
+plt.figure()
+plt.plot(alpha, v_stall)
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$V_{stall}$ [m/s]")
+p.set_ticks(5, 1, 10, 2)
+
+p.show_plot(
+    "ACE-1 V_stall vs alpha")
+
+
+
 
