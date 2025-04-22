@@ -2,6 +2,7 @@ import aerosandbox as asb
 import aerosandbox.numpy as np
 import matplotlib.pyplot as plt
 import aerosandbox.tools.pretty_plots as p
+import json
 
 
 opti=asb.Opti(cache_filename="soln1.json")
@@ -228,3 +229,57 @@ p.set_ticks(5, 1, 10, 2)
 
 p.show_plot(
     "ACE-1 Aerodynamics")
+
+# Calculate CL at a takeoff altitude
+takeoff_altitude = 2438.4  # [m] - example altitude
+takeoff_atm = asb.atmosphere.Atmosphere(takeoff_altitude)
+takeoff_speed = takeoff_atm.speed_of_sound() * cruise_mach
+
+# Calculate aerodynamics at new altitude
+takeoff_aero = asb.AeroBuildup(
+    airplane=airplane,
+    op_point=asb.OperatingPoint(
+        velocity=takeoff_speed,
+        alpha=alpha,
+        beta=0
+    ),
+).run()
+
+# Print results
+print("\nResults at takeoff altitude (", takeoff_altitude, "m):")
+print("Speed of sound:", takeoff_atm.speed_of_sound(), "m/s")
+print("Density:", takeoff_atm.density(), "kg/m^3")
+print("Maximum CL:", np.max(takeoff_aero["CL"]))
+print("CL at optimal angle of attack:", takeoff_aero["CL"][np.argmax(takeoff_aero["CL"] / takeoff_aero["CD"])])
+
+# Plot takeoff aerodynamics
+fig, ax = plt.subplots(2, 2)
+
+plt.sca(ax[0, 0])
+plt.plot(alpha, takeoff_aero["CL"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_L$")
+p.set_ticks(5, 1, 0.5, 0.1)
+
+plt.sca(ax[0, 1])
+plt.plot(alpha, takeoff_aero["CD"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_D$")
+p.set_ticks(5, 1, 0.05, 0.01)
+plt.ylim(bottom=0)
+
+plt.sca(ax[1, 0])
+plt.plot(takeoff_aero["CD"], takeoff_aero["CL"])
+plt.xlabel(r"$C_D$")
+plt.ylabel(r"$C_L$")
+p.set_ticks(5, 1, 0.5, 0.1)
+
+plt.sca(ax[1, 1])
+plt.plot(alpha, takeoff_aero["CL"] / takeoff_aero["CD"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_L/C_D$")
+p.set_ticks(5, 1, 10, 2)
+
+p.show_plot(
+    "ACE-1 Takeoff Aerodynamics")
+
