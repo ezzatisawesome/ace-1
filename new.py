@@ -40,6 +40,7 @@ wing_airfoil = asb.Airfoil("sc20412")
 span = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=5)
 chord_root = opti.variable(init_guess=3, lower_bound=1, upper_bound=15)
 chord_tip = opti.variable(init_guess=1, lower_bound=0.5, upper_bound=3)
+flap_deflection = opti.variable(init_guess=0, lower_bound=0, upper_bound=40)  # Flap deflection angle in degrees
 # aoa = opti.variable(init_guess=2, lower_bound=0, upper_bound=10, scale=1)
 
 
@@ -57,8 +58,7 @@ main_wing = asb.Wing(
             ],  # Coordinates of the XSec's leading edge, relative to the wing's leading edge.
             chord=chord_root,
             # twist=aoa,  # degrees
-            airfoil=wing_airfoil,  # Airfoils are blended between a given XSec and the next one.
-
+            airfoil=wing_airfoil  # Airfoils are blended between a given XSec and the next one.
         ),
         asb.WingXSec(  # Tip
             xyz_le=[
@@ -68,7 +68,7 @@ main_wing = asb.Wing(
             ],
             chord=chord_tip,  # Tip chord is 20% of root chord
             # twist=aoa,
-            airfoil=wing_airfoil,
+            airfoil=wing_airfoil
         ),
     ],
 )
@@ -323,6 +323,81 @@ cl_gain = cl_takeoff - takeoff_aero["CL"][np.argmax(takeoff_aero["CL"] / takeoff
 print("\nRequired CL for takeoff:", round(cl_takeoff, 2))
 print("Current best CL:", round(takeoff_aero["CL"][np.argmax(takeoff_aero["CL"] / takeoff_aero["CD"])], 2))
 print("Required gain in CL for the high lift system:", round(cl_gain, 2))
+
+# Simulate the high lift system
+# Leading edge device on the front of the wing
+# Double slotted flaps on the trailing edge of the wing
+
+# High lift system parameters
+flap_to_chord_ratio = 0.4
+edge_to_chord_ratio = 0.15
+
+
+# Create a copy of the airplane with the new wing
+takeoff_airplane = sol(airplane).copy()
+takeoff_airplane.wings[0].chord_root = sol(chord_root) * (1 + flap_to_chord_ratio + edge_to_chord_ratio)
+takeoff_airplane.wings[0].chord_tip = sol(chord_tip) * (1 + flap_to_chord_ratio + edge_to_chord_ratio)
+
+# Change the airfoil to the optimal takeoff airfoil
+takeoff_airplane.wings[0].airfoil = asb.Airfoil("sc20714")
+
+
+# Calculate aerodynamics with new wing
+takeoff_aero = asb.AeroBuildup(
+    airplane=takeoff_airplane,
+    op_point=asb.OperatingPoint(
+        velocity=takeoff_speed,
+        alpha=alpha,
+        beta=0
+    ),
+).run()
+
+# Plot the takeoff aerodynamics with the high lift system
+# Plot takeoff aerodynamics
+fig, ax = plt.subplots(2, 2)
+
+plt.sca(ax[0,0])
+plt.plot(alpha, takeoff_aero["CL"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_L$")
+
+
+# Calculate V_stall for high lift system
+v_stall_high_lift = []
+for i in range(len(alpha)):
+    v_stall_high_lift.append(np.sqrt(2 * weight / (takeoff_atm.density() * sol(main_wing).area() * takeoff_aero["CL"][i])))
+
+# Plot V_stall vs alpha for high lift system
+plt.sca(ax[0,1])
+plt.plot(alpha, v_stall_high_lift)
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$V_{stall}$ [m/s]")
+
+# Plot Cl/Cd vs alpha for high lift system
+plt.sca(ax[1,0])
+plt.plot(takeoff_aero["CD"], takeoff_aero["CL"])
+plt.xlabel(r"$C_D$")
+plt.ylabel(r"$C_L$")
+
+# Plot Cl/Cd vs alpha for high lift system
+plt.sca(ax[1,1])
+plt.plot(alpha, takeoff_aero["CL"] / takeoff_aero["CD"])
+plt.xlabel(r"$\alpha$ [°]")
+plt.ylabel(r"$C_L/C_D$")
+
+
+p.show_plot(
+    "ACE-1 Takeoff Aerodynamics with High Lift System")
+
+
+
+
+
+
+
+
+
+
 
 
 
