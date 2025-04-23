@@ -39,7 +39,7 @@ cruise_speed = atm.speed_of_sound() * cruise_mach
 wing_airfoil = asb.Airfoil("sc20412")
 span = opti.variable(init_guess=45, lower_bound=35, upper_bound=50, scale=5)
 chord_root = opti.variable(init_guess=3, lower_bound=1, upper_bound=15)
-chord_tip = opti.variable(init_guess=1, lower_bound=0.5, upper_bound=3)
+chord_tip = opti.variable(init_guess=2.5, lower_bound=1, upper_bound=4)
 flap_deflection = opti.variable(init_guess=0, lower_bound=0, upper_bound=40)  # Flap deflection angle in degrees
 # aoa = opti.variable(init_guess=2, lower_bound=0, upper_bound=10, scale=1)
 
@@ -286,7 +286,7 @@ p.show_plot(
 
 # Filter alpha values greater than 0
 for i in range(len(alpha)):
-    if(alpha[i] > 0):
+    if((alpha[i] > 0) and (alpha[i] < 12)):
         alpha = alpha[i:]
         takeoff_aero["CL"] = takeoff_aero["CL"][i:]
         takeoff_aero["CD"] = takeoff_aero["CD"][i:]
@@ -341,11 +341,15 @@ s_area = sol(main_wing).area()
 s_flapped = cl_takeoff * s_area / (0.9 * C_l_max * np.cos(np.deg2rad(20)))
 C_L_max_new = 0.9 * C_l_max *  (s_flapped / s_area) * np.cos(np.deg2rad(20))
 delta_alpha_max = alpha_max * (s_flapped / s_area) * np.cos(np.deg2rad(20))
+v_stall_new = np.sqrt(2 * weight / (takeoff_atm.density() * sol(main_wing).area() * C_L_max_new))
+
 
 print("\nHigh Lift System Specs")
 print("Flap Percentage:", s_flapped / s_area)
 print("C_L_max_new:", C_L_max_new)
+print("V_stall_new:", v_stall_new * 2.23694)
 print("delta_alpha_max:", delta_alpha_max)
+
 
 
 
