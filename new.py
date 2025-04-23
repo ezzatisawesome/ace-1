@@ -286,10 +286,10 @@ p.show_plot(
 
 # Filter alpha values greater than 0
 for i in range(len(alpha)):
-    if((alpha[i] > 0) and (alpha[i] < 12)):
-        alpha = alpha[i:]
-        takeoff_aero["CL"] = takeoff_aero["CL"][i:]
-        takeoff_aero["CD"] = takeoff_aero["CD"][i:]
+    if(alpha[i] < 12):
+        alpha = alpha[:i]
+        takeoff_aero["CL"] = takeoff_aero["CL"][:i]
+        takeoff_aero["CD"] = takeoff_aero["CD"][:i]
         break
 
 # Calculate V_stall as a function of angle of attack
@@ -314,7 +314,7 @@ p.show_plot(
 takeoff_speed = 67.056 # [m/s] 
 
 # Calculate the required CL for takeoff
-cl_takeoff = 2 * weight / (takeoff_atm.density() * sol(main_wing).area() * takeoff_speed**2)
+cl_takeoff = 2 * weight / (takeoff_atm.density() * (sol(main_wing).area() * takeoff_speed**2))
 
 # Calculate the required gain in CL at best CL angle of attack
 cl_gain = cl_takeoff - takeoff_aero["CL"][np.argmax(takeoff_aero["CL"])]
