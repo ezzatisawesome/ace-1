@@ -2,8 +2,8 @@ import aerosandbox as asb
 import aerosandbox.numpy as np
 import aerosandbox.tools.pretty_plots as pplt
 
-# ---------- CONSTANTS ----------
-# --- Flight Conditions ---
+# Constants
+# Flight conditions
 mass = 71000  # [kg]
 g = 9.81  # [m/s^2]
 weight = mass * g
@@ -11,28 +11,26 @@ cruise_mach = 0.8  # [mach]
 cruise_alt = 36000  # [ft]
 service_ceil = 43000  # [ft]
 
-# --- Power ---
-N = 100  # Number of discretization points
-time = np.linspace(0, 24 * 60 * 60, N)  # [s]
-dt = np.diff(time)[0]  # [s]
-Engine_thrust = 105000  # [N] for typical midsize plane engine
-Engine_fuel_consumption = 0.0035  # [kg/m] for typical midsize plane engine
+# # power
+# N = 100  # Number of discretization points
+# time = np.linspace(0, 24 * 60 * 60, N)  # [s]
+# dt = np.diff(time)[0]  # [s]
+# Engine_thrust = 105000  # [N] for typical midsize plane engine
+# Engine_fuel_consumption = 0.0035  # [kg/m] for typical midsize plane engine
 
-# --- Structure ---
-boom_length = 20 # [m]
+# structure
 wingspan = 79  # [m]
 
-# ---------- ATMOSPHERIC MODEL ----------
+# Atmospheric model
 atm = asb.atmosphere.Atmosphere(cruise_alt * 0.3048)
 cruise_speed = atm.speed_of_sound() * cruise_mach
 viscosity = atm.dynamic_viscosity()
 q_inf = (atm.density() * (cruise_speed ** 2)) / 2
 reynolds_num = (atm.density() * (cruise_speed) * wingspan) / viscosity
 
-# ---------- OPTIMIZATION MODEL ----------
-opti=asb.Opti(cache_filename="output/soln1.json")
+# # ---------- OPTIMIZATION MODEL ----------
+# opti=asb.Opti(cache_filename="output/soln1.json")
 
-# ---------- AIRFOIL SELECTION ----------
 # Airfoil selection @ cruise conditions
 alpha_range = np.linspace(3.5, 5, 60)  # Angle of attack [°]
 
@@ -96,7 +94,7 @@ print()
 
 pplt.show_plot(xlabel="Angle of Attack (°)", ylabel="CL/CD", legend=True, title="CL/CD vs Angle of Attack for Various Airfoils")
 
-# --- Determine Best Airfoil ---
+# Determine best airfoil
 # initialize weights
 w1=0.5
 w2=0.5
@@ -124,7 +122,7 @@ for name in airfoil_names:
     if result:
         results.append(result)
 
-# --- Determine Best Airfoil for Takeoff ---
+# Determine Best Airfoil for Takeoff 
 # initialize weights
 w1=0.2
 w2=0.8 # More weight on lift for takeoff
@@ -139,9 +137,6 @@ for r in results:
 
 best_combined = max(results, key=lambda r: r["score"])
 print("Optimal Wing Airfoil @ Takeoff conditions:", best_combined["name"], "--->", "Score:", best_combined["score"])
-
-
-
 
 
 
