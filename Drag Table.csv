@@ -1,0 +1,9 @@
+Component,Quanity,L,S_Wet,k,Percent Turbulent,FF,Q
+Fuselage,1,43.8,470.9420175,1.01E-05,0.8,1.05,1
+Main Wing,1,2.14,187.6,6.34E-06,0.65,1.465,1.05
+Truss Wing,1,0.75,28.1,6.34E-06,0.65,1.465,1.05
+Horizontal Stabilizer,1,2.01,42.1,6.34E-06,0.65,1.465,1.03
+Vertical Stabilizer,1,2.94,33.6,6.34E-06,0.65,1.465,1.03
+Engine Nacelles,2,4.1,12.88052988,4.00E-06,0.9,1.17,1.4
+Pylons,2,2.7,5,4.00E-06,0.72,1.07,1.4
+Flap Track Fairings,1,2.14,56.28,6.34E-06,0.75,1.465,1.03
