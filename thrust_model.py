@@ -57,10 +57,10 @@ def tsfc_model(altitude, mach):
 def plot_available_thrust():
     # Create arrays for Mach numbers and altitudes to plot
     mach_nums = np.linspace(0, 0.9, 50)
-    altitudes = np.array([0, 10000, 20000, 30000, cruise_alt]) # Per the hw instructions
+    altitudes = np.array([0, 10000, 20000, 30000, cruise_alt, 40000]) # Per the hw instructions
     
     plt.figure(figsize=(10, 6))
-    colors = ['blue', 'green', 'red', 'purple', 'orange']
+    colors = ['blue', 'green', 'red', 'purple', 'orange', "black"]
     
     # Plot thrust curves for each altitude
     for i, alt in enumerate(altitudes):
@@ -79,9 +79,9 @@ def plot_available_thrust():
 
 def plot_tsfc():
     mach_nums = np.linspace(0, 0.9, 50)
-    altitudes = np.array([0, 10000, 20000, 30000, cruise_alt])
+    altitudes = np.array([0, 10000, 20000, 30000, cruise_alt, 40000])
     plt.figure(figsize=(10, 6))
-    colors = ['blue', 'green', 'red', 'purple', 'orange']
+    colors = ['blue', 'green', 'red', 'purple', 'orange','black']
     for i, alt in enumerate(altitudes):
         tsfcs = []
         for mach in mach_nums:
@@ -89,8 +89,8 @@ def plot_tsfc():
             tsfcs.append(tsfc)
         plt.plot(mach_nums, tsfcs, label=f'Altitude: {alt:,} ft', color=colors[i])
     plt.xlabel('Mach Number')
-    plt.ylabel('Specific Fuel Consumption (lbf/lbf/hr)')
-    plt.title('Specific Fuel Consumption vs Mach Number at Different Altitudes')
+    plt.ylabel('Thrust Specific Fuel Consumption (lbf/hr/lbf)')
+    plt.title('Thrust Specific Fuel Consumption vs Mach Number at Different Altitudes')
     plt.grid(True)
     plt.legend()
     plt.show()
